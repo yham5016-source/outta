@@ -6,7 +6,7 @@ Every response passes through Temporal lobe (context analysis) → Frontal lobe 
 
 Not a prompt chain. A signal amplification architecture inspired by how brains process information.
 
-Built by Ham Youngjae | 2025–2026
+Built by Ham Youngjae | Since 2026-04-02
 
 [한국어 README](README_KR.md)
 
@@ -200,4 +200,4 @@ Apache License 2.0
 ## Author
 
 Ham Youngjae
-2025–2026
+Since 2026-04-02
