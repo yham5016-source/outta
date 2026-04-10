@@ -1,178 +1,203 @@
-# Outta (아우타)
+# Outta
 
-> **$2/month, 743 lines, 3 LLMs — brain-inspired AI framework**
+> **$2/month, ~750 lines, 3 LLMs — brain-inspired AI framework**
 
-모든 답변이 측두엽(맥락 분석) → 전두엽(응답 생성) → 소뇌(검증+증폭)를 거칩니다.
-LLM 래퍼가 아닙니다. 뇌 과학 기반 신호 증폭 아키텍처입니다.
+Every response passes through Temporal lobe (context analysis) → Frontal lobe (response generation) → Cerebellum (verification + amplification).
 
-설계·구축: 함영재 (Ham Youngjae) | 2025~2026
+Not a prompt chain. A signal amplification architecture inspired by how brains process information.
+
+Built by Ham Youngjae | 2025–2026
+
+[한국어 README](README_KR.md)
 
 ---
 
-## 왜 Outta인가
+![demo](demo.gif)
 
-| 기존 AI 프레임워크 | Outta |
-|-------------------|-------|
-| 프롬프트 체이닝 | 뇌 영역별 신호 처리 |
-| 분류에 LLM 호출 | 효소 라우터 — API 0회, ~30ms |
-| 할루시네이션 후처리 | 3중 방어 (코드→구조→LLM) |
-| 단일 관점 응답 | 맥락 분석 → 증폭 → 검증 |
+## Why Outta
 
-## 성능
+| Typical AI frameworks | Outta |
+|----------------------|-------|
+| LLM call for classification | Enzyme router — 0 API calls, ~30ms |
+| Post-hoc hallucination filtering | 3-layer defense (code → structural → LLM) |
+| Single-perspective response | Context analysis → amplification → verification |
+| Prompt chaining | Brain-region signal processing |
 
-| 항목 | 수치 |
-|------|------|
-| 분류 속도 | **~30ms** (효소 라우터, API 0, local embeddings ~400MB RAM) |
-| FAST 경로 | **~1초** (LLM 1회) |
-| BRAIN 경로 | **~5초** (LLM 3회) |
-| 분류 정확도 | **93%** (독립 테스트 100개, 95% CI 88-98%) |
-| 월 비용 | **~$2 API cost** (Groq free tier + DeepSeek, on Oracle Free Tier) |
-| 할루시네이션 방어 | 3-layer (pattern → structural → LLM cross-check) |
-| 코드 | **~750줄** core (excluding benchmarks/examples) |
+## Performance
 
-## 아키텍처
+| Metric | Value |
+|--------|-------|
+| Routing speed | **~30ms** (enzyme router, 0 API calls, local embeddings) |
+| FAST path | **~1s** (1 LLM call) |
+| BRAIN path | **~5s** (3 LLM calls) |
+| Routing accuracy | **93%** (100 independent test cases, 95% CI 88–98%) |
+| Monthly cost | **~$2 API cost** (Groq free tier + DeepSeek) |
+| Hallucination defense | 3-layer (pattern → structural → LLM cross-check) |
+| Codebase | **~750 lines** core (excluding benchmarks/examples) |
+
+## Architecture
 
 ```
-입력
+Input
  ↓
-기저핵 (캐시 히트?) ──→ 즉시 반환
+Basal Ganglia (cache hit?) ──→ instant return
  ↓ miss
-해마 (관련 기억 주입)
+Hippocampus (inject relevant memories)
  ↓
-효소 라우터 (코사인 유사도, ~30ms, API 0)
- ↓ 확신도 < 20%이면 뇌간 LLM 폴백
-FACTUAL 게이트 ──→ 고유명사/사실 질문 → SEARCH
+Enzyme Router (cosine similarity, ~30ms, 0 API calls)
+ ↓ confidence < threshold → Brainstem LLM fallback
+FACTUAL Gate ──→ proper nouns / facts → SEARCH
  ↓
-ACC (경로 결정)
- ├── FAST → 전두엽 단독 (LLM 1회) → 출력
- ├── SEARCH → 검색 필요 플래그 → 출력
+ACC (route decision)
+ ├── FAST → Frontal lobe only (1 LLM call) → output
+ ├── SEARCH → needs-search flag → output
  └── BRAIN ↓
-      측두엽 (맥락/감정/숨은 의도)
+      Temporal lobe (context / emotion / hidden intent)
        ↓
-      전두엽 (맥락 기반 응답 생성)
+      Frontal lobe (context-aware response generation)
        ↓
-      소뇌 (검증 + 증폭)
-       ↓   점수 < 8 → 수정+보강
-       ↓   빠진 관점 → 증폭
-      크리틱 (패턴 차단 + 구조적 환각)
+      Cerebellum (verify + amplify)
+       ↓   score < 8 → revise + reinforce
+       ↓   missing perspective → amplify
+      Critic (pattern blocking + structural hallucination)
        ↓
-      뇌섬엽 (LLM 교차 검증, 점수 < 9일 때만)
+      Insula (LLM cross-check, only when score < 9)
        ↓
-      요소 회로 (저장 전 독소 정제)
+      Urea Cycle (pre-storage toxin filter)
        ↓
-출력 → 해마 저장 → 기저핵 캐시
+Output → Hippocampus (store) → Basal Ganglia (cache)
 ```
 
-## 할루시네이션 3중 방어
+## Hallucination Defense — 3 Layers
 
 ```
-응답 생성
+Response generated
  ↓
-[1차] 크리틱 — 코드 기반 패턴 매칭
-  → 가짜 수치, 아부, 축 왜곡, 합성 오류, 가짜 다양성
+[Layer 1] Critic — code-based pattern matching
+  → fake metrics, sycophancy, axis drift, synthesis conflict, fake diversity
  ↓
-[2차] 뇌섬엽 — LLM 교차 검증
-  → 크리틱이 못 잡는 미묘한 날조 감지
+[Layer 2] Insula — LLM cross-check
+  → catches subtle fabrications that rules miss
  ↓
-[3차] 요소 회로 — 저장 전 정제
-  → 메모리에 오염된 데이터가 쌓이는 것 자체를 차단
+[Layer 3] Urea Cycle — pre-storage filter
+  → prevents contaminated data from entering memory
 ```
 
-## 빠른 시작
+## Quick Start
 
 ```bash
-git clone https://github.com/ham-youngjae/outta.git
+git clone https://github.com/yham5016-source/outta.git
 cd outta
-pip install sentence-transformers  # optional, 없으면 키워드 폴백
+pip install sentence-transformers  # optional — falls back to keyword matching
 ```
 
 ```python
 from pipeline import OuttaPipeline
 
 pipeline = OuttaPipeline(
-    llm_fast=my_fast_llm,     # 경량: 효소 폴백 시 분류 (Groq Llama-70B)
-    llm_think=my_think_llm,   # 사고: 측두엽 + 전두엽 (DeepSeek, Qwen-235B)
-    llm_verify=my_verify_llm, # 검증: 소뇌 증폭 + 뇌섬엽 감시 (다른 모델 추천)
+    llm_fast=my_fast_llm,     # lightweight: brainstem fallback (Groq Llama-70B)
+    llm_think=my_think_llm,   # reasoning: temporal + frontal (DeepSeek, Qwen-235B)
+    llm_verify=my_verify_llm, # verification: cerebellum + insula (use a different model)
 )
 
-result = pipeline.process("직장을 그만둬야 할지 모르겠어")
+result = pipeline.process("Should I quit my job?")
 print(result["answer"])
-# 경로: BRAIN | 점수: 9
+# route: BRAIN | score: 9
 ```
 
-### LLM 인터페이스
+### LLM Interface
 
 ```python
 def my_llm(messages: list[dict], max_tokens: int, temperature: float) -> str:
-    """OpenAI-호환 messages → 응답 문자열."""
+    """OpenAI-compatible messages → response string."""
     ...
 ```
 
-3개 모델 모두 이 인터페이스만 맞추면 됩니다. 같은 모델 3개로도 동작합니다.
+All 3 models use this interface. You can use the same model for all three — different models increase cross-verification effectiveness.
 
-### 모델 배치 가이드
+### Model Guide
 
-| 역할 | 특성 | 추천 | 이유 |
-|------|------|------|------|
-| `fast` | 빠르고 저렴 | Groq Llama-70B | 분류 폴백만. 효소가 대부분 처리 |
-| `think` | 사고력 | DeepSeek-V3, Qwen-235B | 응답 품질 = 전체 품질 |
-| `verify` | 객관적 | Gemini Flash, GPT-4o-mini | think과 다른 모델 → 교차 검증 효과 |
+| Role | Characteristics | Recommended | Why |
+|------|----------------|-------------|-----|
+| `fast` | Fast, cheap | Groq Llama-70B | Only used when enzyme router falls back |
+| `think` | Strong reasoning | DeepSeek-V3, Qwen-235B | Response quality = overall quality |
+| `verify` | Objective checker | Gemini Flash, GPT-4o-mini | Different model from think → cross-check |
 
-## 뇌 영역
+## Brain Regions
 
-### 실시간 처리
+### Real-time Processing
 
-| 영역 | 역할 | 파일 |
-|------|------|------|
-| **효소 라우터** | 코사인 유사도 즉시 분류 (API 0) | `enzyme.py` |
-| **뇌간** | 효소 폴백 시 LLM 분류 | `brainstem.py` |
-| **ACC** | 확신도 기반 경로 분기 | `acc.py` |
-| **측두엽** | 맥락/감정/숨은 의도 분석 | `temporal.py` |
-| **전두엽** | 맥락 기반 응답 생성 | `frontal.py` |
-| **소뇌** | 검증 + 빠진 관점 증폭 | `cerebellum.py` |
-| **크리틱** | 패턴 차단 + 구조적 환각 감지 | `critic.py` |
-| **뇌섬엽** | LLM 교차 검증 | `insula.py` |
-| **글리아** | 적응형 temperature 조절 | `glia.py` |
+| Region | Role | File |
+|--------|------|------|
+| **Enzyme Router** | Cosine similarity instant classification (0 API) | `enzyme.py` |
+| **Brainstem** | LLM fallback when enzyme is uncertain | `brainstem.py` |
+| **ACC** | Confidence-based route branching | `acc.py` |
+| **Temporal Lobe** | Context / emotion / hidden intent analysis | `temporal.py` |
+| **Frontal Lobe** | Context-aware response generation | `frontal.py` |
+| **Cerebellum** | Verification + missing perspective amplification | `cerebellum.py` |
+| **Critic** | Pattern blocking + structural hallucination detection | `critic.py` |
+| **Insula** | LLM cross-check | `insula.py` |
+| **Glia** | Adaptive temperature control | `glia.py` |
 
-### 저장
+### Storage
 
-| 영역 | 역할 | 파일 |
-|------|------|------|
-| **해마** | 기억 저장/검색 | `hippocampus.py` |
-| **기저핵** | 패턴 캐시 | `basal_ganglia.py` |
+| Region | Role | File |
+|--------|------|------|
+| **Hippocampus** | Memory store / retrieval | `hippocampus.py` |
+| **Basal Ganglia** | Pattern cache | `basal_ganglia.py` |
 
-## 설계 원칙
+## Design Principles
 
-1. **증폭 > 토론** — 같은 모델로 상반된 역할극은 연극이다. 하나의 응답을 검증하고 보강하는 게 진짜 증폭.
-2. **분류에 LLM 쓰지 마** — 효소 라우터. 코사인 유사도면 충분하다. API 0회.
-3. **생성에서 막아** — _postprocess 100줄보다 프롬프트 한 줄이 낫다.
-4. **오염된 기억은 저장하지 마** — 요소 회로. 메모리에 들어가면 끝이다.
-5. **검증은 생성과 분리** — 만드는 놈과 검사하는 놈이 달라야 한다.
+1. **Amplify > Debate** — Role-playing opposite views with the same model is theater. Verify and reinforce a single response instead.
+2. **Don't use LLMs for classification** — Cosine similarity is enough. Zero API calls.
+3. **Block at generation, not post-processing** — One prompt rule beats 100 lines of regex.
+4. **Never store contaminated memory** — Urea cycle. Once it's in memory, it's too late.
+5. **Separate generation from verification** — The one who creates and the one who checks must be different.
 
-## v1 → v2 변경 이력
+## Limitations
 
-| v1 | v2 | 이유 |
-|----|-----|------|
-| 뇌간 LLM 분류 (매번 API 1회) | 효소 라우터 (API 0, ~30ms) | FAST 경로 5초→1초 |
-| 편도체×2 이중 신호 (효율 vs 연민) | 삭제 → 소뇌 증폭으로 통합 | 같은 모델로 상반된 관점은 연극 |
-| 전두엽 3신호 합성 (merge) | 맥락 기반 단일 응답 (select) | 합치면 부풀고 서정이 끼어듦 |
-| 크리틱 regex 3개 | 구조적 환각 2종 + 축왜곡 + 확장 | 가짜 다양성, 합성 오류 차단 |
-| 글리아 칭찬만 감지 | 대화 유형별 적응형 temperature | 주제에 따라 temperature 자동 조절 |
-| BRAIN LLM 6회 | LLM 3회 (측두→전두→소뇌) | 비용 절반, 속도 2배 |
-| 요소 회로 없음 | 저장 전 독소 정제 | 메모리 오염 원천 차단 |
+- Routing accuracy is 93% on 100 test cases — edge cases will misroute
+- "Brain-inspired" is a naming metaphor, not a neuroscience implementation
+- BRAIN path adds 3 sequential LLM calls (~5s latency)
+- $2/month assumes Groq free tier + Oracle Free Tier — your costs may vary
+- Solo developer — maintenance bandwidth is limited
+- Hippocampus uses keyword matching — no semantic search without sentence-transformers
 
-## 버전 이력
+## Benchmark
 
-```
-Outta v1 — 14영역 병렬 + 편도체 이중신호
-Outta v2 — 증폭형 아키텍처 + 효소 라우터 + 구조적 환각 방어
+```bash
+python benchmark.py
 ```
 
-## 라이선스
+100 independent test cases (no overlap with router anchors):
+
+| Category | Accuracy |
+|----------|----------|
+| FAST | 81.8% (27/33) |
+| BRAIN | 97.1% (33/34) |
+| SEARCH | 100% (33/33) |
+| **Total** | **93% (93/100)** |
+| 95% CI | [88%, 98%] |
+
+## Version History
+
+```
+Outta v1 — 14-region parallel + dual amygdala signals
+Outta v2 — Amplification architecture + enzyme router + structural hallucination defense
+```
+
+Key changes in v2:
+- Removed dual amygdala (same-model debate is theater) → cerebellum handles amplification
+- Brainstem LLM classification → enzyme router (0 API, ~30ms)
+- BRAIN path: 6 LLM calls → 3 (temporal → frontal → cerebellum)
+- Added structural hallucination detectors + FACTUAL gate + urea cycle
+- Fixed glia temperature bug + adaptive temperature per query type
+
+## License
 
 Apache License 2.0
 
-## 만든 사람
+## Author
 
-함영재 (Ham Youngjae)
-2025~2026
+Ham Youngjae
+2025–2026
